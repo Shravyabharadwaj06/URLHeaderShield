@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Header Shield | Password Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff1493;
+            --secondary: #00bfff;
+            --bg-dark: #050505;
+            --bg-card: rgba(10, 10, 25, 0.85);
+            --safe: #00ff88;
+            --warning: #ffcc00;
+            --danger: #ff4444;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 60px auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin: 0;
+            text-shadow: 0 0 20px rgba(0, 191, 255, 0.4);
+        }
+
+        p.subtitle {
+            color: var(--secondary);
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            margin-top: 10px;
+        }
+
+        .analyzer-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 191, 255, 0.2);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+        }
+
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .pw-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 191, 255, 0.3);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1.2rem;
+            font-family: 'Courier New', Courier, monospace;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .pw-input:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 15px rgba(0, 191, 255, 0.2);
+        }
+
+        .toggle-btn {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--secondary);
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+
+        .toggle-btn:hover { opacity: 1; }
+
+        /* Strength Bar UI */
+        .strength-indicator {
+            margin-bottom: 30px;
+        }
+
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .strength-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            color: #888;
+        }
+
+        .strength-text {
+            font-weight: 700;
+            text-transform: uppercase;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .bar-container {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .bar-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s;
+        }
+
+        /* Suggestions Area */
+        .suggestions-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        .suggestions-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            color: var(--secondary);
+            margin-top: 0;
+            border-bottom: 1px solid rgba(0, 191, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        .suggestions-list {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0 0;
+        }
+
+        .suggestion-item {
+            font-size: 0.95rem;
+            color: #aaa;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: color 0.3s;
+        }
+
+        .suggestion-item.valid {
+            color: var(--safe);
+            opacity: 0.5;
+        }
+
+        .suggestion-item::before {
+            content: '○';
+            color: var(--secondary);
+        }
+
+        .suggestion-item.valid::before {
+            content: '●';
+            color: var(--safe);
+        }
+
+        /* Actions Section */
+        .actions-row {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-check {
+            background: linear-gradient(90deg, #00008b, #4b0082);
+            border: 1px solid var(--secondary);
+            color: #fff;
+        }
+
+        .btn-gen {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn-check:hover {
+            box-shadow: 0 0 20px rgba(0, 191, 255, 0.4);
+            border-color: #fff;
+        }
+
+        .btn-gen:hover {
+            background: rgba(255, 20, 147, 0.1);
+            box-shadow: 0 0 20px rgba(255, 20, 147, 0.4);
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 30px;
+            color: var(--secondary);
+            text-decoration: none;
+            font-weight: 500;
+            text-align: center;
+            width: 100%;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-section">
+            <h1 id="analyzer-title">Password Strength Analyzer</h1>
+            <p class="subtitle" id="analyzer-subtitle">Secure Your Identity with Intelligent Analysis</p>
+        </div>
+
+        <div class="analyzer-card fade-in">
+            <div class="input-wrapper">
+                <input type="password" id="pw-field" class="pw-input" placeholder="Type or generate a password...">
+                <button type="button" id="toggle-pw" class="toggle-btn">Show</button>
+            </div>
+
+            <div class="strength-indicator">
+                <div class="label-row">
+                    <span class="strength-label">SECURITY RATING</span>
+                    <span id="strength-text" class="strength-text" style="color: #444;">IDLE</span>
+                </div>
+                <div class="bar-container">
+                    <div id="bar-fill" class="bar-fill"></div>
+                </div>
+            </div>
+
+            <div class="actions-row">
+                <button type="button" class="btn btn-check" onclick="analyzePassword()">ANALYZE CREDENTIAL</button>
+                <button type="button" class="btn btn-gen" onclick="generatePassword()">GENERATE SECURE PW</button>
+            </div>
+
+            <div class="suggestions-card" id="suggestions-area">
+                <h3 id="suggestion-title">SECURITY ENHANCEMENT PROTOCOLS</h3>
+                <ul class="suggestions-list" id="suggestions-list">
+                    <!-- Suggestions injected here -->
+                </ul>
+            </div>
+        </div>
+
+        <a href="index.html" class="back-link">← Return to Analyzer</a>
+    </div>
+
+    <script src="cyber-theme.js"></script>
+    <script>
+        const pwField = document.getElementById('pw-field');
+        const toggleBtn = document.getElementById('toggle-pw');
+        const barFill = document.getElementById('bar-fill');
+        const strengthText = document.getElementById('strength-text');
+        const suggestionsList = document.getElementById('suggestions-list');
+
+        // 1. Toggle Visibility
+        toggleBtn.addEventListener('click', () => {
+            const isPw = pwField.type === 'password';
+            pwField.type = isPw ? 'text' : 'password';
+            toggleBtn.innerText = isPw ? 'Hide' : 'Show';
+        });
+
+        // 2. Real-time Analysis
+        pwField.addEventListener('input', () => {
+             analyzePassword();
+        });
+
+        function analyzePassword() {
+            const pw = pwField.value;
+            if (!pw) {
+                resetUI();
+                return;
+            }
+
+            const criteria = {
+                length8: pw.length >= 8,
+                length12: pw.length >= 12,
+                upper: /[A-Z]/.test(pw),
+                lower: /[a-z]/.test(pw),
+                number: /[0-9]/.test(pw),
+                special: /[^A-Za-z0-9]/.test(pw)
+            };
+
+            let score = 0;
+            if (criteria.length8) score += 20;
+            if (criteria.upper) score += 15;
+            if (criteria.lower) score += 15;
+            if (criteria.number) score += 15;
+            if (criteria.special) score += 15;
+            if (criteria.length12) score += 20;
+
+            updateUI(score, criteria);
+        }
+
+        function updateUI(score, criteria) {
+            let label = "Weak";
+            let color = "var(--danger)";
+            
+            if (score >= 40 && score < 80) {
+                label = "Medium";
+                color = "var(--warning)";
+            } else if (score >= 80) {
+                label = "Strong";
+                color = "var(--safe)";
+            }
+
+            barFill.style.width = score + '%';
+            barFill.style.backgroundColor = color;
+            barFill.style.boxShadow = `0 0 10px ${color}66`;
+            
+            strengthText.innerText = label;
+            strengthText.style.color = color;
+
+            // Update Suggestions
+            const tips = [
+                { key: 'length8', text: "Add at least 8-12 characters" },
+                { key: 'upper', text: "Include uppercase letters (A-Z)" },
+                { key: 'lower', text: "Include lowercase letters (a-z)" },
+                { key: 'number', text: "Add numeric digits (0-9)" },
+                { key: 'special', text: "Add special characters (!@#$%^&*)" }
+            ];
+
+            suggestionsList.innerHTML = "";
+            tips.forEach(tip => {
+                const li = document.createElement('li');
+                li.className = `suggestion-item ${criteria[tip.key] ? 'valid' : ''}`;
+                li.innerText = tip.text;
+                suggestionsList.appendChild(li);
+            });
+        }
+
+        function resetUI() {
+            barFill.style.width = '0%';
+            strengthText.innerText = "IDLE";
+            strengthText.style.color = "#444";
+            suggestionsList.innerHTML = "";
+        }
+
+        // 3. Secure Generator
+        window.generatePassword = function() {
+            const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+            let retVal = "";
+            const length = 14;
+            
+            for (let i = 0; i < length; ++i) {
+                retVal += charset.charAt(Math.floor(Math.random() * charset.length));
+            }
+            
+            pwField.value = retVal;
+            pwField.type = "text";
+            toggleBtn.innerText = "Hide";
+            analyzePassword();
+            CyberTheme.playSystemReady();
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            CyberTheme.typeWriter('analyzer-title', 'Password Strength Analyzer', 40);
+            setTimeout(() => {
+                CyberTheme.typeWriter('analyzer-subtitle', 'Secure Your Identity with Intelligent Analysis', 30);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

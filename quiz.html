@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Header Shield | Cyber Security Quiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff1493;
+            --secondary: #00bfff;
+            --bg-dark: #050505;
+            --bg-card: rgba(10, 10, 25, 0.82);
+            --safe: #00ff88;
+            --warning: #ffcc00;
+            --danger: #ff4444;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+            z-index: 2;
+            position: relative;
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin: 0;
+            text-shadow: 0 0 20px rgba(0, 191, 255, 0.4);
+        }
+
+        p.subtitle {
+            color: var(--secondary);
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            margin-top: 10px;
+        }
+
+        .quiz-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 191, 255, 0.2);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+        }
+
+        .question-block {
+            margin-bottom: 35px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+            color: #fff;
+            display: flex;
+            gap: 15px;
+        }
+
+        .question-number {
+            color: var(--primary);
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid { grid-template-columns: 1fr; }
+        }
+
+        .option-label {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .option-label:hover {
+            background: rgba(0, 191, 255, 0.05);
+            border-color: var(--secondary);
+            transform: translateX(5px);
+        }
+
+        .option-label input {
+            accent-color: var(--secondary);
+            width: 18px;
+            height: 18px;
+        }
+
+        .option-label.selected {
+            background: rgba(0, 191, 255, 0.15);
+            border-color: var(--secondary);
+            box-shadow: 0 0 15px rgba(0, 191, 255, 0.2);
+        }
+
+        .submit-section {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(90deg, #00008b, #4b0082);
+            border: 1px solid var(--secondary);
+            color: #fff;
+            padding: 15px 50px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(0, 191, 255, 0.2);
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(90deg, #4b0082, var(--primary));
+            border-color: var(--primary);
+            box-shadow: 0 0 30px rgba(255, 20, 147, 0.4);
+            transform: translateY(-3px);
+        }
+
+        /* Results Area */
+        #results-area {
+            display: none;
+            margin-top: 40px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .results-card {
+            background: var(--bg-card);
+            border: 2px solid var(--secondary);
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .res-score-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: var(--secondary);
+            margin-bottom: 20px;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 25px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 1.5s ease-in-out, background-color 0.5s;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .score-display {
+            font-size: 2.5rem;
+            font-weight: 700;
+            font-family: 'Orbitron';
+            margin: 15px 0;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 8px 25px;
+            border-radius: 50px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 25px;
+        }
+
+        .suggestions-box {
+            background: rgba(0,0,0,0.4);
+            border-radius: 10px;
+            padding: 25px;
+            text-align: left;
+        }
+
+        .suggestions-box h3 {
+            color: var(--secondary);
+            font-family: 'Orbitron';
+            font-size: 1rem;
+            margin-top: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        .suggestions-box ul {
+            padding-left: 20px;
+            margin-bottom: 0;
+        }
+
+        .suggestions-box li {
+            margin-bottom: 10px;
+            color: #ccc;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 30px;
+            color: var(--secondary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-section">
+            <h1 id="quiz-title">Cyber Security Assessment</h1>
+            <p class="subtitle" id="quiz-subtitle">Check How Cyber Secure You Are</p>
+        </div>
+
+        <div class="quiz-card" id="quiz-container">
+            <form id="cyber-quiz">
+                <!-- Questions will be injected here via JS if needed, or kept static for weight -->
+                <div id="questions-area"></div>
+
+                <div class="submit-section">
+                    <button type="button" class="submit-btn" onclick="calculateScore()">Check My Cyber Security Score</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="results-area">
+            <div class="results-card" id="results-card">
+                <div class="res-score-title">YOUR SECURITY PROFILE</div>
+                
+                <div class="score-display">
+                    <span id="numeric-score">0</span> / 60
+                </div>
+
+                <div class="risk-badge" id="risk-badge">Calculating...</div>
+
+                <div class="progress-container">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+
+                <div class="suggestions-box">
+                    <h3 id="suggestion-title">SECURITY ENHANCEMENT PROTOCOLS</h3>
+                    <ul id="suggestions-list"></ul>
+                </div>
+
+                <a href="index.html" class="back-link">← Return to Analyzer</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="cyber-theme.js"></script>
+    <script>
+        const questions = [
+            { q: "How often do you update your passwords?", options: ["Never", "Only when required", "Once a year", "Every few months"] },
+            { q: "Do you use the same password for multiple websites?", options: ["Yes, for almost everything", "For a few accounts", "Rarely", "Never"] },
+            { q: "Do you enable two-factor authentication (2FA) on your accounts?", options: ["I don’t know what that is", "No", "On a few accounts", "Yes, on all important accounts"] },
+            { q: "What do you do when you receive a suspicious email?", options: ["Click the link immediately", "Ignore it", "Check the sender address", "Verify it before clicking anything"] },
+            { q: "Do you connect to public Wi-Fi networks without protection?", options: ["Yes, always", "Often", "Sometimes", "Rarely or never"] },
+            { q: "Do you install apps from unknown or untrusted websites?", options: ["Yes", "Sometimes", "Rarely", "Never"] },
+            { q: "Do you regularly update your device’s operating system and software?", options: ["Never", "Only when forced", "Sometimes", "Always"] },
+            { q: "Do you check the URL of a website before entering sensitive information?", options: ["Never", "Rarely", "Sometimes", "Always"] },
+            { q: "Do you use a password manager?", options: ["No and I don’t plan to", "No", "Considering it", "Yes"] },
+            { q: "Do you back up important files regularly?", options: ["Never", "Rarely", "Sometimes", "Yes, regularly"] },
+            { q: "What do you do before downloading attachments from emails?", options: ["Download immediately", "Only if it looks important", "Scan it", "Verify the sender first"] },
+            { q: "Do you log out of accounts on shared or public computers?", options: ["Never", "Rarely", "Sometimes", "Always"] },
+            { q: "Do you use antivirus or security software on your devices?", options: ["No", "I’m not sure", "On some devices", "Yes on all devices"] },
+            { q: "Do you review app permissions before installing apps?", options: ["Never", "Rarely", "Sometimes", "Always"] },
+            { q: "What would you do if you suspect your account was hacked?", options: ["Ignore it", "Wait and see", "Change the password", "Change password, enable 2FA, and check activity"] }
+        ];
+
+        function initQuiz() {
+            const area = document.getElementById('questions-area');
+            questions.forEach((item, index) => {
+                const block = document.createElement('div');
+                block.className = 'question-block';
+                
+                let optionsHtml = '';
+                item.options.forEach((opt, optIndex) => {
+                    const val = optIndex + 1; // A=1, B=2, C=3, D=4
+                    optionsHtml += `
+                        <label class="option-label" onclick="selectOption(this)">
+                            <input type="radio" name="q${index}" value="${val}" required>
+                            <span>${String.fromCharCode(65 + optIndex)}) ${opt}</span>
+                        </label>
+                    `;
+                });
+
+                block.innerHTML = `
+                    <div class="question-text">
+                        <span class="question-number">0${index + 1}</span>
+                        <span>${item.q}</span>
+                    </div>
+                    <div class="options-grid">${optionsHtml}</div>
+                `;
+                area.appendChild(block);
+            });
+
+            // Typewriter titles
+            CyberTheme.typeWriter('quiz-title', 'Cyber Security Assessment', 40);
+            setTimeout(() => {
+                CyberTheme.typeWriter('quiz-subtitle', 'Check How Cyber Secure You Are', 30);
+            }, 1000);
+        }
+
+        window.selectOption = function(label) {
+            const name = label.querySelector('input').name;
+            document.querySelectorAll(`input[name="${name}"]`).forEach(input => {
+                input.parentElement.classList.remove('selected');
+            });
+            label.classList.add('selected');
+            CyberTheme.playInterfaceClick();
+        };
+
+        window.calculateScore = function() {
+            const form = document.getElementById('cyber-quiz');
+            const formData = new FormData(form);
+            let score = 0;
+            let answeredCount = 0;
+
+            for (let i = 0; i < questions.length; i++) {
+                const val = formData.get(`q${i}`);
+                if (val) {
+                    score += parseInt(val);
+                    answeredCount++;
+                }
+            }
+
+            if (answeredCount < questions.length) {
+                alert(`Please answer all questions! (${answeredCount}/${questions.length} completed)`);
+                return;
+            }
+
+            displayResults(score);
+        };
+
+        function displayResults(score) {
+            const resultsArea = document.getElementById('results-area');
+            const quizContainer = document.getElementById('quiz-container');
+            const numericScore = document.getElementById('numeric-score');
+            const progressFill = document.getElementById('progress-fill');
+            const riskBadge = document.getElementById('risk-badge');
+            const suggestionsList = document.getElementById('suggestions-list');
+
+            quizContainer.style.display = 'none';
+            resultsArea.style.display = 'block';
+            resultsArea.scrollIntoView({ behavior: 'smooth' });
+
+            // Animate number
+            let current = 0;
+            const timer = setInterval(() => {
+                if (current >= score) clearInterval(timer);
+                else {
+                    current++;
+                    numericScore.innerText = current;
+                }
+            }, 30);
+
+            // Progress bar
+            const percent = (score / 60) * 100;
+            progressFill.style.width = percent + '%';
+
+            // Logic for tiers
+            let tier = "";
+            let color = "";
+            let suggestions = [];
+
+            if (score <= 30) {
+                tier = "High Risk 🚨";
+                color = "var(--danger)";
+                suggestions = [
+                    "Use stronger and unique passwords for every account.",
+                    "Enable two-factor authentication (2FA) immediately.",
+                    "Avoid clicking suspicious links in emails or messages.",
+                    "Install reputable antivirus software on all devices."
+                ];
+            } else if (score <= 45) {
+                tier = "Moderate Security ⚠";
+                color = "var(--warning)";
+                suggestions = [
+                    "Improve your password practices using a manager.",
+                    "Enable 2FA on more secondary accounts.",
+                    "Be extremely cautious when using public Wi-Fi.",
+                    "Ensure all software is set to auto-update."
+                ];
+            } else {
+                tier = "Good Security 🔒";
+                color = "var(--safe)";
+                suggestions = [
+                    "Great job maintaining good cyber hygiene!",
+                    "Continue monitoring your accounts for suspicious activity.",
+                    "Keep your software updated and stay informed on new threats."
+                ];
+            }
+
+            progressFill.style.backgroundColor = color;
+            riskBadge.innerText = tier;
+            riskBadge.style.backgroundColor = color + '22';
+            riskBadge.style.color = color;
+            riskBadge.style.border = `1px solid ${color}`;
+
+            suggestionsList.innerHTML = "";
+            suggestions.forEach((s, i) => {
+                const li = document.createElement('li');
+                li.id = `suggest-${i}`;
+                suggestionsList.appendChild(li);
+                setTimeout(() => {
+                    CyberTheme.typeWriter(`suggest-${i}`, s, 25);
+                }, i * 600);
+            });
+
+            CyberTheme.playDigitalBeep(1000, 0.2);
+        }
+
+        document.addEventListener('DOMContentLoaded', initQuiz);
+    </script>
+</body>
+</html>

@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en"> <!--Main dashboard and entry point for header shield-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Header Shield | Advanced Security Analyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff1493;    /* Pink */
+            --secondary: #00bfff;  /* Blue */
+            --bg-dark: #050505;
+            --bg-card: rgba(10, 10, 25, 0.8);
+            --safe: #00ff88;
+            --warning: #ffcc00;
+            --danger: #ff4444;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #fff;
+            overflow-x: hidden;
+            background-image: 
+            radial-gradient(circle at 20% 30%, rgba(75, 0, 130, 0.2) 0%, transparent 40%),
+            radial-gradient(circle at 80% 70%, rgba(255, 20, 147, 0.1) 0%, transparent 40%);
+        }
+
+        /* Nav Bar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 50px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(0, 191, 255, 0.3);
+        }
+
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            margin-left: 30px;
+            transition: color 0.3s;
+            border: 1px solid transparent;
+            padding: 8px 15px;
+            border-radius: 4px;
+        }
+
+        .nav-links a:hover {
+            color: var(--secondary);
+            border-color: var(--secondary);
+        }
+
+        .nav-links a.active {
+            background: var(--bg-card);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Main Layout */
+        .main-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 40px;
+        }
+
+        /* Hero / Input Section */
+        .hero {
+            text-align: center;
+            margin-bottom: 50px;
+            grid-column: 1 / -1;
+        }
+
+        .hero h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.5rem;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: #fff;
+        }
+
+        .hero p {
+            color: var(--secondary);
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            margin-top: 10px;
+            opacity: 0.8;
+        }
+
+        .analyzer-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .analyzer-input {
+            flex: 1;
+            padding: 15px 25px;
+            font-size: 1.1rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 191, 255, 0.3);
+            border-radius: 8px;
+            color: #fff;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .analyzer-input:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 15px rgba(0, 191, 255, 0.2);
+        }
+
+        .analyze-btn {
+            padding: 15px 35px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            background: linear-gradient(90deg, #00008b, #4b0082);
+            border: 1px solid var(--secondary);
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(90deg, #4b0082, var(--primary));
+            border-color: var(--primary);
+            box-shadow: 0 5px 20px rgba(255, 20, 147, 0.4);
+        }
+
+        /* Sidebar - History */
+        .sidebar {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            height: fit-content;
+        }
+
+        .sidebar h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            margin-top: 0;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--secondary);
+        }
+
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            transition: background 0.3s;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .delete-history {
+            color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-left: 10px;
+            transition: all 0.3s;
+            display: inline-block;
+            font-weight: 700;
+        }
+
+        .delete-history:hover {
+            color: var(--danger);
+            transform: scale(1.2);
+        }
+
+        .history-url {
+            font-size: 0.9rem;
+            color: #ccc;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
+        }
+
+        .history-score {
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        /* Loading / Progress */
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+
+        .loading-container {
+            text-align: center;
+            margin-top: 40px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .loading-text {
+            color: #00bfff;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .progress-bar {
+            width: 400px;
+            height: 8px;
+            background: rgba(0, 191, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 191, 255, 0.3);
+            box-shadow: 0 0 15px rgba(0, 191, 255, 0.1);
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #00bfff, #ff1493);
+            box-shadow: 0 0 20px rgba(255, 20, 147, 0.6);
+            transition: width 0.4s ease;
+        }
+
+        /* Score Display Card */
+        .score-card {
+            text-align: center;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            margin-bottom: 30px;
+            position: relative;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .score-box {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 30px;
+        }
+
+        .score-svg {
+            transform: rotate(-90deg);
+        }
+
+        .score-circle-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.05);
+            stroke-width: 10;
+        }
+
+        .score-circle-val {
+            fill: none;
+            stroke-width: 10;
+            stroke-linecap: round;
+            stroke-dasharray: 565.48; /* 2 * PI * 90 */
+            stroke-dashoffset: 565.48;
+            transition: stroke-dashoffset 2s ease-out;
+        }
+
+        .score-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .score-number {
+            font-size: 3rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: var(--secondary);
+        }
+
+        .risk-level {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 10px 30px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        /* Results Grid */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .result-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            transition: transform 0.3s;
+        }
+
+        .result-item:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .header-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .fix-box {
+            margin-top: 15px;
+            border-left: 3px solid var(--danger);
+            border-radius: 4px;
+        }
+
+        .fix-box code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #ff8c00;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.5s ease forwards; }
+
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo">HEADER SHIELD</div>
+        <div class="nav-links">
+            <a href="#" class="active">Analyzer</a>
+            <a href="quiz.html">Security Quiz</a>
+            <a href="pwrdstrngth.html">Password Checker</a>
+            <a href="page2.html">Security Guide</a>
+            <a href="report.html" style="background: rgba(255, 20, 147, 0.2); border: 1px solid var(--primary); padding: 5px 15px; border-radius: 20px; color: var(--primary); font-weight: 700;">Report URL</a>
+        </div>
+    </nav>
+
+    <div class="main-wrapper">
+        
+        <div class="content-area">
+            <div class="hero fade-in">
+                <h1>Analyze. Secure. Protect.</h1>
+                <p id="hero-typewriter">Advanced HTTP Header Security Intelligence</p>
+            </div>
+
+            <div class="analyzer-card fade-in">
+                <div class="input-group">
+                    <input type="text" id="target-url" class="analyzer-input" placeholder="Enter URL (e.g. google.com)">
+                    <button class="analyze-btn" id="analyze-btn" onclick="CyberTheme.playInterfaceClick()">Scan URL</button>
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center;">
+                    <button id="gen-fixes-btn" class="analyze-btn" style="background: transparent; border: 1px solid var(--secondary); color: var(--secondary); font-size: 0.9rem; padding: 10px 20px; width: auto; display: none;">
+                        Auto-Generate Fix Summary
+                    </button>
+                </div>
+            </div>
+
+            <div id="results-display">
+                <!-- Data will be populated here -->
+            </div>
+
+            <div id="fixes-display" style="margin-top: 30px;">
+                <!-- Auto-Generated Fixes will appear here -->
+            </div>
+        </div>
+
+        <div class="sidebar fade-in">
+            <h2>RECENT SCANS</h2>
+            <div id="history-list" class="history-list">
+                <!-- History items will be populated here -->
+                <div style="text-align: center; color: #555; padding: 20px;">No recent scans</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="cyber-theme.js"></script>
+    <script>
+        const API_BASE = "http://127.0.0.1:8000";
+        let lastAnalysisData = null;
+
+        // Load history on page load
+        window.onload = () => {
+            renderHistory();
+            CyberTheme.typeWriter('hero-typewriter', 'Advanced HTTP Header Security Intelligence', 40);
+        }
+
+        document.getElementById('analyze-btn').addEventListener('click', async () => {
+            const urlInput = document.getElementById('target-url').value;
+            const resultsDisplay = document.getElementById('results-display');
+            
+            if (!urlInput) {
+                alert("Please enter a URL first!");
+                return;
+            }
+
+            // Scroll to results
+            resultsDisplay.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // Show Loading UI
+            resultsDisplay.innerHTML = `
+                <div class="analyzer-card fade-in">
+                    <div class="loading-container">
+                        <div id="loading-msg" class="loading-text" style="font-family: 'Orbitron'; color: var(--secondary); margin-bottom: 20px;">INITIALIZING SCAN...</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const loadingMessages = [
+                "Scanning target infrastructure...",
+                "Retrieving HTTP response headers...",
+                "Analyzing security policies...",
+                "Finalizing security intelligence..."
+            ];
+
+            const msgElement = document.getElementById('loading-msg');
+            const fillElement = document.getElementById('progress-fill');
+
+            for (let i = 0; i < loadingMessages.length; i++) {
+                msgElement.innerText = loadingMessages[i].toUpperCase();
+                fillElement.style.width = `${((i + 1) / loadingMessages.length) * 100}%`;
+                await new Promise(resolve => setTimeout(resolve, 800));
+            }
+
+            try {
+                console.log("Analyzing URL:", urlInput);
+                const response = await fetch(`${API_BASE}/analyze/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: urlInput })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.error || "Server error.");
+
+                const score = data.security_score;
+                let riskLevel = "";
+                let riskColor = "";
+
+                if (score > 50) {
+                    riskLevel = "SAFE";
+                    riskColor = "#00ff88"; // Safe Green
+                } else if (score >= 30 && score <= 50) {
+                    riskLevel = "RISK LEVEL: MEDIUM";
+                    riskColor = "#ffcc00"; // Warning Yellow
+                } else {
+                    riskLevel = "RISK LEVEL: DANGEROUS";
+                    riskColor = "#ff4444"; // Danger Red
+                }
+
+                function getScoreColor(s) {
+                    const hue = (s / 100) * 120; // 0 (red) to 120 (green)
+                    return `hsl(${hue}, 100%, 50%)`;
+                }
+
+                const dynamicColor = getScoreColor(score);
+
+                // Store data for fixes generator
+                lastAnalysisData = data;
+                document.getElementById('gen-fixes-btn').style.display = 'block';
+
+                if (data.reported_warning) {
+                    const upVotes = data.report_details ? data.report_details.ups : 0;
+                    const downVotes = data.report_details ? data.report_details.downs : 0;
+                    
+                    const warningBanner = document.createElement('div');
+                    warningBanner.className = 'analyzer-card fade-in';
+                    warningBanner.style.borderColor = 'var(--danger)';
+                    warningBanner.style.background = 'rgba(255, 68, 68, 0.1)';
+                    warningBanner.style.textAlign = 'center';
+                    warningBanner.style.marginBottom = '20px';
+                    warningBanner.innerHTML = `
+                        <h3 style="color: var(--danger); font-family: 'Orbitron'; margin: 0;">⚠️ SECURITY WARNING</h3>
+                        <p style="color: #fff; margin: 10px 0 0;">This URL has been reported in our website as potentially malicious.</p>
+                        <div style="margin-top: 15px; font-size: 0.9rem; color: #ccc;">
+                            <span style="color: var(--safe); font-weight: 700;">${upVotes}</span> thumbs up means ${upVotes} people agree and 
+                            <span style="color: var(--danger); font-weight: 700;">${downVotes}</span> thumbs down means ${downVotes} people disagree.
+                        </div>
+                    `;
+                    resultsDisplay.prepend(warningBanner);
+                }
+
+                // Save to History
+                saveToHistory(data.url, score, dynamicColor);
+
+                // Build Final Display
+                let outputHtml = `
+                    <div class="score-card fade-in">
+                        <h2 style="font-family: 'Orbitron'; margin-bottom: 30px;">SHIELD REPORT: ${data.url}</h2>
+                        
+                        <div class="score-box">
+                            <svg class="score-svg" width="200" height="200">
+                                <circle class="score-circle-bg" cx="100" cy="100" r="90"></circle>
+                                <circle id="score-circle-val" class="score-circle-val" cx="100" cy="100" r="90" style="stroke: ${dynamicColor};"></circle>
+                            </svg>
+                            <div class="score-text">
+                                <span class="score-number" id="animated-score">0</span>
+                                <span class="score-label">SHIELD SCORE</span>
+                            </div>
+                        </div>
+
+                        <div class="risk-level" style="background: ${riskColor}22; border: 1px solid ${riskColor}; color: ${riskColor};">
+                            ${riskLevel}
+                        </div>
+                    </div>
+
+                    <div class="results-grid">
+                `;
+
+                data.headers_analyzed.forEach((item, index) => {
+                    const statusColor = item.status === "Present" ? "#00ff88" : "#ff4444";
+                    outputHtml += `
+                        <div class="result-item fade-in" style="animation-delay: ${index * 0.1}s">
+                            <div class="header-status">
+                                <strong style="color: #fff; font-size: 1.1rem;">${item.header}</strong>
+                                <span class="status-badge" style="border: 1px solid ${statusColor}; color: ${statusColor};">${item.status.toUpperCase()}</span>
+                            </div>
+                            
+                            ${item.status === 'Present' 
+                                ? `<p style="font-family: monospace; font-size: 0.85rem; color: #888; overflow-wrap: break-word;">${item.value}</p>`
+                                : `<div class="fix-box">
+                                     <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase;">Suggested Implementation</div>
+                                     <code>${item.suggested_fix}</code>
+                                   </div>`
+                            }
+                        </div>
+                    `;
+                });
+
+                outputHtml += `</div>`;
+                resultsDisplay.innerHTML = outputHtml;
+
+                // Automatically show fixes if missing headers exist
+                renderAutoFixes(data);
+
+                // Animate Circle and Number
+                setTimeout(() => {
+                    const circle = document.getElementById('score-circle-val');
+                    const circumference = 2 * Math.PI * 90;
+                    const offset = circumference - (score / 100) * circumference;
+                    circle.style.strokeDashoffset = offset;
+
+                    let current = 0;
+                    const timer = setInterval(() => {
+                        if (current >= score) {
+                            clearInterval(timer);
+                        } else {
+                            current++;
+                            const scoreNum = document.getElementById('animated-score');
+                            if (scoreNum) {
+                                scoreNum.innerText = current;
+                                scoreNum.style.color = getScoreColor(current);
+                            }
+                        }
+                    }, 20);
+                }, 100);
+
+            } catch (error) {
+                console.error("Analysis Error:", error);
+                let errorMessage = error.message;
+                if (error instanceof TypeError && error.message.includes('fetch')) {
+                    errorMessage = "Could not connect to the security server. Please ensure the backend is running.";
+                }
+                
+                resultsDisplay.innerHTML = `
+                    <div class="analyzer-card fade-in" style="border-color: var(--danger); text-align: center;">
+                        <h3 style="color: var(--danger);">ANALYSIS FAILED</h3>
+                        <p style="color: #ccc;">${errorMessage}</p>
+                    </div>
+                `;
+            }
+        });
+
+        // Auto-Generate Fixes Summary
+        const genFixesBtn = document.getElementById('gen-fixes-btn');
+
+        genFixesBtn.addEventListener('click', () => {
+            if (!lastAnalysisData) return;
+
+            const missingHeaders = lastAnalysisData.headers_analyzed.filter(h => h.status === 'Missing');
+            
+            if (missingHeaders.length === 0) {
+                alert("Your website is already fully protected! No fixes needed.");
+                return;
+            }
+
+            const fixContent = missingHeaders.map(h => h.suggested_fix).join('\n');
+            
+            const fixModal = document.createElement('div');
+            fixModal.className = 'modal-overlay';
+            fixModal.style.display = 'flex';
+            fixModal.style.position = 'fixed';
+            fixModal.style.top = '0';
+            fixModal.style.left = '0';
+            fixModal.style.width = '100%';
+            fixModal.style.height = '100%';
+            fixModal.style.background = 'rgba(0,0,0,0.85)';
+            fixModal.style.backdropFilter = 'blur(8px)';
+            fixModal.style.justifyContent = 'center';
+            fixModal.style.alignItems = 'center';
+            fixModal.style.zIndex = '1000';
+            
+            fixModal.innerHTML = `
+                <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--primary); padding: 40px; border-radius: 15px; text-align: center; max-width: 600px; width: 90%; box-shadow: 0 0 30px rgba(255, 20, 147, 0.3);">
+                    <h2 style="font-family: 'Orbitron'; color: var(--secondary); margin-bottom: 20px;">AUTO-GENERATED FIXES</h2>
+                    <p style="font-size: 0.9rem; color: #ccc; margin-bottom: 15px;">Copy and add these headers to your web server configuration:</p>
+                    <div style="background: #000; padding: 20px; border-radius: 8px; border: 1px solid var(--primary); text-align: left; position: relative;">
+                        <pre style="color: var(--secondary); font-family: 'Courier New', monospace; white-space: pre-wrap; margin: 0; font-size: 0.9rem;">${fixContent}</pre>
+                        <button onclick="copyFixes(this)" 
+                                style="position: absolute; top: 10px; right: 10px; background: var(--primary); border: none; color: #fff; font-size: 0.7rem; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+                            COPY ALL
+                        </button>
+                    </div>
+                    <button style="margin-top: 20px; background: transparent; border: 1px solid #555; color: #888; padding: 10px 30px; cursor: pointer; border-radius: 6px;" onclick="this.closest('.modal-overlay').remove()">CLOSE</button>
+                </div>
+            `;
+            document.body.appendChild(fixModal);
+        });
+
+        function renderAutoFixes(data) {
+            const fixesDisplay = document.getElementById('fixes-display');
+            const missingHeaders = data.headers_analyzed.filter(h => h.status === 'Missing');
+            
+            if (missingHeaders.length === 0) {
+                fixesDisplay.innerHTML = '';
+                return;
+            }
+
+            const fixContent = missingHeaders.map(h => h.suggested_fix).join('\n');
+            
+            fixesDisplay.innerHTML = `
+                <div class="analyzer-card fade-in" style="border-color: var(--primary); background: rgba(255, 20, 147, 0.05);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="font-family: 'Orbitron'; color: var(--primary); margin: 0; font-size: 1.2rem;">AUTO-GENERATED FIXES</h2>
+                        <button onclick="copyFixes(this)" 
+                                style="background: var(--primary); border: none; color: #fff; font-size: 0.8rem; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-family: 'Orbitron';">
+                            COPY ALL FIXES
+                        </button>
+                    </div>
+                    <p style="font-size: 0.9rem; color: #ccc; margin-bottom: 15px; text-align: left;">Add these missing headers to your server configuration to improve security:</p>
+                    <div style="background: #000; padding: 20px; border-radius: 8px; border: 1px solid rgba(255, 20, 147, 0.3); text-align: left;">
+                        <pre id="fix-content-pre" style="color: var(--secondary); font-family: 'Courier New', monospace; white-space: pre-wrap; margin: 0; font-size: 0.9rem;">${fixContent}</pre>
+                    </div>
+                </div>
+            `;
+        }
+
+        function copyFixes(btn) {
+            const pre = document.getElementById('fix-content-pre');
+            if (pre) {
+                navigator.clipboard.writeText(pre.innerText);
+                const originalText = btn.innerText;
+                btn.innerText = 'COPIED!';
+                btn.style.background = '#00ff88';
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.background = 'var(--primary)';
+                }, 2000);
+            }
+        }
+
+        function saveToHistory(url, score, color) {
+            let history = JSON.parse(localStorage.getItem('header_shield_history') || '[]');
+            history.unshift({ url, score, color, timestamp: new Date().getTime() });
+            history = history.slice(0, 10);
+            localStorage.setItem('header_shield_history', JSON.stringify(history));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const history = JSON.parse(localStorage.getItem('header_shield_history') || '[]');
+            const list = document.getElementById('history-list');
+            
+            if (history.length === 0) {
+                list.innerHTML = '<div style="text-align: center; color: #555; padding: 20px;">No recent scans</div>';
+                return;
+            }
+
+            list.innerHTML = history.map((item, index) => `
+                <div class="history-item">
+                    <div style="display: flex; align-items: center;">
+                        <span class="history-url" title="${item.url}">${item.url}</span>
+                        <span class="delete-history" onclick="deleteFromHistory(${index})" title="Delete entry">✕</span>
+                    </div>
+                    <span class="history-score" style="border: 1px solid ${item.color}; color: ${item.color};">${item.score}/100</span>
+                </div>
+            `).join('');
+        }
+
+        function deleteFromHistory(index) {
+            let history = JSON.parse(localStorage.getItem('header_shield_history') || '[]');
+            history.splice(index, 1);
+            localStorage.setItem('header_shield_history', JSON.stringify(history));
+            renderHistory();
+        }
+    </script>
+</body>
+</html>

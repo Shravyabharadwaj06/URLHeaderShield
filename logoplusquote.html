@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Header Shield | Security Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff1493;    /* Pink */
+            --secondary: #00bfff;  /* Blue */
+            --bg-dark: #050505;
+            --bg-card: rgba(10, 10, 25, 0.8);
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            font-family: 'Rajdhani', sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(75, 0, 130, 0.2) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(255, 20, 147, 0.1) 0%, transparent 40%);
+        }
+
+        .splash-container {
+            text-align: center;
+            max-width: 700px;
+            padding: 40px;
+            z-index: 10;
+        }
+
+        /* Logo Styling and Animation */
+        .logo-wrapper {
+            margin-bottom: 50px;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .logo-img {
+            max-width: 400px;
+            height: auto;
+            filter: drop-shadow(0 0 20px rgba(0, 191, 255, 0.4));
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Quote Styling */
+        .quote-box {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-left: 4px solid var(--secondary);
+            position: relative;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .quote-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .quote-text {
+            font-size: 1.4rem;
+            color: #fff;
+            line-height: 1.4;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        /* Button Styling */
+        .continue-btn {
+            display: inline-block;
+            padding: 15px 45px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            text-decoration: none;
+            background: linear-gradient(90deg, #00008b, #4b0082);
+            border: 1px solid var(--secondary);
+            color: #fff;
+            border-radius: 50px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(0, 191, 255, 0.2);
+            animation: fadeIn 1.5s ease-out;
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-3px);
+            background: linear-gradient(90deg, #4b0082, var(--primary));
+            border-color: var(--primary);
+            box-shadow: 0 5px 25px rgba(255, 20, 147, 0.5);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Background Decorations */
+        .decor-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(0, 191, 255, 0.03);
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="decor-circle" style="width: 400px; height: 400px; top: -100px; left: -100px;"></div>
+    <div class="decor-circle" style="width: 300px; height: 300px; bottom: -50px; right: -50px; background: rgba(255, 20, 147, 0.02);"></div>
+
+    <div class="splash-container">
+        <div class="logo-wrapper">
+            <img src="Cyber_shield_logo-removebg-preview.png" alt="Header Shield Logo" class="logo-img">
+        </div>
+
+        <div class="quote-box">
+            <span class="quote-label">Security Protocol Tip</span>
+            <div id="safety-snippet" class="quote-text">Initializing security protocols...</div>
+        </div>
+
+        <a href="page1.html" class="continue-btn" onclick="CyberTheme.playInterfaceClick()">Continue to Analyzer</a>
+    </div>
+
+    <script src="cyber-theme.js"></script>
+    <script>
+        const snippets = [
+            "Always use strong and unique passwords for every account.",
+            "Enable two-factor authentication whenever possible.",
+            "Never click suspicious links in emails or messages.",
+            "Keep your software and systems regularly updated.",
+            "Avoid using public Wi-Fi for sensitive transactions.",
+            "Verify website URLs before entering personal information.",
+            "Use a password manager to store and generate secure passwords.",
+            "Be cautious of phishing emails pretending to be trusted services.",
+            "Regularly back up important data to prevent data loss.",
+            "Lock your devices when not in use.",
+            "Download applications only from trusted sources.",
+            "Do not share personal information with unknown websites.",
+            "Monitor your accounts regularly for suspicious activity.",
+            "Use antivirus and security software to protect your devices.",
+            "Always log out from shared or public computers."
+        ];
+
+        function displayRandomSnippet() {
+            const randomIndex = Math.floor(Math.random() * snippets.length);
+            const text = snippets[randomIndex];
+            CyberTheme.typeWriter('safety-snippet', text, 30);
+        }
+
+        // Initialize script
+        window.onload = displayRandomSnippet;
+    </script>
+</body>
+</html>

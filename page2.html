@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAKE ME CYBERSAFE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #050505; /* Deep black background */
+            font-family: 'Rajdhani', sans-serif;
+            color: #fff;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 800px;
+            max-width: 90%;
+            background: rgba(10, 10, 25, 0.8); /* Dark blue tinted body box */
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.8), 0 0 15px rgba(75, 0, 130, 0.4);
+            border: 1px solid #4b0082; /* Purple inner border */
+            backdrop-filter: blur(5px);
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            color: #ff1493; /* Pink Title */
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 20, 147, 0.6);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #00bfff; /* Deep sky blue subtitle */
+            text-shadow: 0 0 8px rgba(0, 191, 255, 0.4);
+            margin-top: 30px;
+            border-bottom: 1px solid #ff1493;
+            padding-bottom: 5px;
+            display: inline-block;
+        }
+
+        ul {
+            color: #ccc;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        details {
+            background-color: #0d111c; /* Slightly lighter deep blue/black */
+            padding: 18px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #1c2642; /* Grey-blue border */
+            transition: all 0.3s ease;
+            box-shadow: 0 0 5px rgba(0, 191, 255, 0.1);
+        }
+
+        details:hover {
+            border-color: #ff1493;
+            box-shadow: 0 0 12px rgba(255, 20, 147, 0.4);
+            background-color: #120a16; /* Slight purple/pink tint shift on hover */
+        }
+
+        details[open] {
+            border-color: #00bfff;
+            box-shadow: 0 0 10px rgba(0, 191, 255, 0.3);
+        }
+
+        summary {
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #00bfff; /* Blue text */
+            transition: color 0.3s ease;
+            outline: none;
+            letter-spacing: 0.5px;
+        }
+
+        summary:hover {
+            color: #ff1493; /* Turns pink when hovered over */
+            text-shadow: 0 0 5px rgba(255, 20, 147, 0.4);
+        }
+
+        p {
+            color: #aaa;
+            line-height: 1.6;
+            margin-top: 15px;
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>About Our Platform</h1>
+    <h2>Our Mission</h2>
+    <ul>
+        <li>Educate users about web security</li>
+        <li>Prevent phishing attacks</li>
+        <li>Promote safe internet usage</li>
+        <li>Help developers build secure websites</li>
+    </ul>
+    
+    <br>
+    <h1>Security Awareness Guide</h1>
+
+    <details>
+    <summary>How to Prevent Yourself from Being a Victim of Unsafe Security Headers?</summary>
+    <ul>
+        <li>Prefer using websites that follow modern security standards and HTTPS.</li>
+        <li>Avoid entering personal or financial information on suspicious websites.</li>
+        <li>Developers should configure essential security headers properly.</li>
+        <li>Keep your browser updated for built-in protections.</li>
+        <li>Be cautious while downloading files or clicking unknown links.</li>
+        <li>Perform periodic security audits to identify risks.</li>
+        <li>Educate users about basic web security awareness.</li>
+    </ul>
+    </details>
+
+    <details>
+    <summary>What are the Best Web Safety Tips?</summary>
+    <ul>
+        <li>Always check HTTPS before entering sensitive data.</li>
+        <li>Verify domain names carefully to avoid phishing.</li>
+        <li>Avoid clicking unknown links or pop-ups.</li>
+        <li>Use strong and unique passwords.</li>
+        <li>Enable multi-factor authentication.</li>
+        <li>Keep browser and OS updated.</li>
+        <li>Avoid downloads from untrusted sources.</li>
+        <li>Be careful on public Wi-Fi networks.</li>
+    </ul>
+    </details>
+
+    <details>
+    <summary>What are Security Headers?</summary>
+    <p>
+    Security headers are HTTP response headers that help browsers enforce safe
+    interaction with websites and protect against common client-side attacks.
+    </p>
+    </details>
+
+    <details>
+    <summary>Why are Security Headers Important?</summary>
+    <p>
+    They reduce risks like cross-site scripting (XSS), clickjacking,
+    content injection and unauthorized data access.
+    </p>
+    </details>
+
+    <details>
+    <summary>How does this analyser help users?</summary>
+    <p>
+    Our tool scans website response headers, detects weak or missing configurations,
+    and provides simple risk insights with improvement suggestions.
+    </p>
+    </details>
+
+    <details>
+    <summary>What is HTTP?</summary>
+    <ul>
+        <li>HTTP is a protocol used for communication between browser and server.</li>
+        <li>Browser sends request → server sends response.</li>
+        <li>HTTP alone is not secure.</li>
+        <li>Modern websites use HTTPS with encryption and security headers.</li>
+    </ul>
+    </details>
+
+</div>
+
+</body>
+</html>
