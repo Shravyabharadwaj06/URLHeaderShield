@@ -260,7 +260,7 @@
             }
 
             try {
-                const response = await fetch('http://127.0.0.1:8000/report/', {
+                const response = await fetch('https://headerback.onrender.com/report/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ url, description })
@@ -289,7 +289,7 @@
             resultsBox.innerHTML = '<div style="color: var(--secondary);">Searching records...</div>';
 
             try {
-                const response = await fetch(`http://127.0.0.1:8000/search/?url=${encodeURIComponent(query)}`);
+                const response = await fetch(`https://headerback.onrender.com/search/?url=${encodeURIComponent(query)}`);
                 const data = await response.json();
 
                 if (data.results.length === 0) {
@@ -324,7 +324,7 @@
         // Vote Function
         window.vote = async (id, type) => {
             try {
-                const response = await fetch('http://127.0.0.1:8000/vote/', {
+                const response = await fetch('https://headerback.onrender.com/vote/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id, vote: type })
@@ -343,7 +343,7 @@
 
         window.removeVote = async (id) => {
             try {
-                const response = await fetch('http://127.0.0.1:8000/remove_vote/', {
+                const response = await fetch('https://headerback.onrender.com/remove_vote/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id })
