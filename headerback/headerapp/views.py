@@ -39,8 +39,20 @@ def analyze_url(request):
         try:
             # Check if reported and get votes
             report = ReportedURL.objects.filter(url__contains=original_input).first()
+
+            # Standard User-Agent to avoid being blocked
+            request_headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 HeaderShield/1.0'
+            }
             
-            response = requests.get(url, timeout=10)
+            # Use HEAD request for efficiency and compatibility
+            # verify=False can be used if SSL issues are common, but better to keep it True by default
+            response = requests.head(url, headers=request_headers, timeout=10, allow_redirects=True)
+            
+            # If HEAD fails or is not allowed, try GET but only for headers
+            if response.status_code == 405 or response.status_code == 403:
+                response = requests.get(url, headers=request_headers, timeout=10, stream=True)
+            
             headers = response.headers
             
             # Use utility for analysis and fixes
@@ -63,6 +75,12 @@ def analyze_url(request):
 
             return JsonResponse(result)
 
+        except requests.exceptions.Timeout:
+            return JsonResponse({'error': 'Scan timed out. The server took too long to respond.'}, status=408)
+        except requests.exceptions.SSLError:
+            return JsonResponse({'error': 'SSL Verification failed. The target site might have an invalid certificate.'}, status=400)
+        except requests.exceptions.ConnectionError:
+            return JsonResponse({'error': 'Connection failed. Could not reach the target server.'}, status=400)
         except requests.exceptions.RequestException as e:
             return JsonResponse({'error': f'Failed to fetch the URL: {str(e)}'}, status=400)
 

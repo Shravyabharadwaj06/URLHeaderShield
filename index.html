@@ -459,8 +459,128 @@
 
     <script src="cyber-theme.js"></script>
     <script>
-        const API_BASE = "http://127.0.0.1:8000";
         let lastAnalysisData = null;
+
+        // ── Security Header Config (mirrors the Python backend) ───────────────
+        const SECURITY_HEADERS_CONFIG = {
+            'X-Frame-Options': {
+                fixes: {
+                    raw:    "X-Frame-Options: DENY",
+                    nginx:  'add_header X-Frame-Options "DENY" always;',
+                    apache: 'Header set X-Frame-Options "DENY"'
+                }
+            },
+            'Content-Security-Policy': {
+                fixes: {
+                    raw:    "Content-Security-Policy: default-src 'self';",
+                    nginx:  "add_header Content-Security-Policy \"default-src 'self';\" always;",
+                    apache: "Header set Content-Security-Policy \"default-src 'self';\""
+                }
+            },
+            'Strict-Transport-Security': {
+                fixes: {
+                    raw:    "Strict-Transport-Security: max-age=31536000; includeSubDomains",
+                    nginx:  'add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;',
+                    apache: 'Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"'
+                }
+            },
+            'X-Content-Type-Options': {
+                fixes: {
+                    raw:    "X-Content-Type-Options: nosniff",
+                    nginx:  'add_header X-Content-Type-Options "nosniff" always;',
+                    apache: 'Header set X-Content-Type-Options "nosniff"'
+                }
+            },
+            'Referrer-Policy': {
+                fixes: {
+                    raw:    "Referrer-Policy: no-referrer-when-downgrade",
+                    nginx:  'add_header Referrer-Policy "no-referrer-when-downgrade" always;',
+                    apache: 'Header set Referrer-Policy "no-referrer-when-downgrade"'
+                }
+            },
+            'X-XSS-Protection': {
+                fixes: {
+                    raw:    "X-XSS-Protection: 1; mode=block",
+                    nginx:  'add_header X-XSS-Protection "1; mode=block" always;',
+                    apache: 'Header set X-XSS-Protection "1; mode=block"'
+                }
+            },
+            'Permissions-Policy': {
+                fixes: {
+                    raw:    "Permissions-Policy: camera=(), microphone=(), geolocation=()",
+                    nginx:  'add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;',
+                    apache: 'Header set Permissions-Policy "camera=(), microphone=(), geolocation=()"'
+                }
+            },
+            'Cross-Origin-Opener-Policy': {
+                fixes: {
+                    raw:    "Cross-Origin-Opener-Policy: same-origin",
+                    nginx:  'add_header Cross-Origin-Opener-Policy "same-origin" always;',
+                    apache: 'Header set Cross-Origin-Opener-Policy "same-origin"'
+                }
+            },
+            'Cross-Origin-Embedder-Policy': {
+                fixes: {
+                    raw:    "Cross-Origin-Embedder-Policy: require-corp",
+                    nginx:  'add_header Cross-Origin-Embedder-Policy "require-corp" always;',
+                    apache: 'Header set Cross-Origin-Embedder-Policy "require-corp"'
+                }
+            },
+            'Cross-Origin-Resource-Policy': {
+                fixes: {
+                    raw:    "Cross-Origin-Resource-Policy: same-origin",
+                    nginx:  'add_header Cross-Origin-Resource-Policy "same-origin" always;',
+                    apache: 'Header set Cross-Origin-Resource-Policy "same-origin"'
+                }
+            }
+        };
+
+        // ── Client-side header analysis ───────────────────────────────────────
+        function analyzeHeaders(headersObj) {
+            const headerKeys = Object.keys(SECURITY_HEADERS_CONFIG);
+            const pointsPerHeader = 100 / headerKeys.length;
+            let totalScore = 0;
+            const results = [];
+
+            for (const headerName of headerKeys) {
+                // Case-insensitive lookup
+                const lowerKey = headerName.toLowerCase();
+                let value = null;
+                for (const [k, v] of Object.entries(headersObj)) {
+                    if (k.toLowerCase() === lowerKey) { value = v; break; }
+                }
+
+                if (value) {
+                    totalScore += pointsPerHeader;
+                    results.push({ header: headerName, status: 'Present', value });
+                } else {
+                    results.push({
+                        header: headerName,
+                        status: 'Missing',
+                        suggested_fixes: SECURITY_HEADERS_CONFIG[headerName].fixes
+                    });
+                }
+            }
+            return { results, score: Math.round(totalScore) };
+        }
+
+        // ── Django backend API call ────────────────────────────────────────────
+        const API_BASE = "http://127.0.0.1:8000";
+
+        async function fetchFromBackend(rawUrl) {
+            let url = rawUrl.trim();
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+            const response = await fetch(`${API_BASE}/analyze/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: rawUrl })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Server error.');
+            return data;
+        }
 
         // Load history on page load
         window.onload = () => {
@@ -469,13 +589,18 @@
         }
 
         document.getElementById('analyze-btn').addEventListener('click', async () => {
-            const urlInput = document.getElementById('target-url').value;
+            const urlInput = document.getElementById('target-url').value.trim();
             const resultsDisplay = document.getElementById('results-display');
+            const fixesDisplay = document.getElementById('fixes-display');
             
             if (!urlInput) {
                 alert("Please enter a URL first!");
                 return;
             }
+
+            // Reset fixes panel
+            fixesDisplay.innerHTML = '';
+            document.getElementById('gen-fixes-btn').style.display = 'none';
 
             // Scroll to results
             resultsDisplay.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -502,23 +627,23 @@
             const msgElement = document.getElementById('loading-msg');
             const fillElement = document.getElementById('progress-fill');
 
-            for (let i = 0; i < loadingMessages.length; i++) {
-                msgElement.innerText = loadingMessages[i].toUpperCase();
-                fillElement.style.width = `${((i + 1) / loadingMessages.length) * 100}%`;
-                await new Promise(resolve => setTimeout(resolve, 800));
-            }
+            // Animate loading messages while fetching
+            let msgIndex = 0;
+            const msgInterval = setInterval(() => {
+                if (msgIndex < loadingMessages.length) {
+                    msgElement.innerText = loadingMessages[msgIndex].toUpperCase();
+                    fillElement.style.width = `${((msgIndex + 1) / loadingMessages.length) * 75}%`;
+                    msgIndex++;
+                }
+            }, 800);
 
             try {
-                console.log("Analyzing URL:", urlInput);
-                const response = await fetch(`${API_BASE}/analyze/`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: urlInput })
-                });
+                // ── Call the Django backend ───────────────────────────────────
+                const data = await fetchFromBackend(urlInput);
 
-                const data = await response.json();
-
-                if (!response.ok) throw new Error(data.error || "Server error.");
+                clearInterval(msgInterval);
+                fillElement.style.width = "100%";
+                await new Promise(r => setTimeout(r, 300));
 
                 const score = data.security_score;
                 let riskLevel = "";
@@ -526,17 +651,17 @@
 
                 if (score > 50) {
                     riskLevel = "SAFE";
-                    riskColor = "#00ff88"; // Safe Green
-                } else if (score >= 30 && score <= 50) {
+                    riskColor = "#00ff88";
+                } else if (score >= 30) {
                     riskLevel = "RISK LEVEL: MEDIUM";
-                    riskColor = "#ffcc00"; // Warning Yellow
+                    riskColor = "#ffcc00";
                 } else {
                     riskLevel = "RISK LEVEL: DANGEROUS";
-                    riskColor = "#ff4444"; // Danger Red
+                    riskColor = "#ff4444";
                 }
 
                 function getScoreColor(s) {
-                    const hue = (s / 100) * 120; // 0 (red) to 120 (green)
+                    const hue = (s / 100) * 120;
                     return `hsl(${hue}, 100%, 50%)`;
                 }
 
@@ -546,29 +671,9 @@
                 lastAnalysisData = data;
                 document.getElementById('gen-fixes-btn').style.display = 'block';
 
-                if (data.reported_warning) {
-                    const upVotes = data.report_details ? data.report_details.ups : 0;
-                    const downVotes = data.report_details ? data.report_details.downs : 0;
-                    
-                    const warningBanner = document.createElement('div');
-                    warningBanner.className = 'analyzer-card fade-in';
-                    warningBanner.style.borderColor = 'var(--danger)';
-                    warningBanner.style.background = 'rgba(255, 68, 68, 0.1)';
-                    warningBanner.style.textAlign = 'center';
-                    warningBanner.style.marginBottom = '20px';
-                    warningBanner.innerHTML = `
-                        <h3 style="color: var(--danger); font-family: 'Orbitron'; margin: 0;">⚠️ SECURITY WARNING</h3>
-                        <p style="color: #fff; margin: 10px 0 0;">This URL has been reported in our website as potentially malicious.</p>
-                        <div style="margin-top: 15px; font-size: 0.9rem; color: #ccc;">
-                            <span style="color: var(--safe); font-weight: 700;">${upVotes}</span> thumbs up means ${upVotes} people agree and 
-                            <span style="color: var(--danger); font-weight: 700;">${downVotes}</span> thumbs down means ${downVotes} people disagree.
-                        </div>
-                    `;
-                    resultsDisplay.prepend(warningBanner);
-                }
-
                 // Save to History
                 saveToHistory(data.url, score, dynamicColor);
+
 
                 // Build Final Display
                 let outputHtml = `
@@ -606,8 +711,8 @@
                             ${item.status === 'Present' 
                                 ? `<p style="font-family: monospace; font-size: 0.85rem; color: #888; overflow-wrap: break-word;">${item.value}</p>`
                                 : `<div class="fix-box">
-                                     <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase;">Suggested Implementation</div>
-                                     <code>${item.suggested_fix}</code>
+                                     <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase;">Suggested Implementation (Raw)</div>
+                                     <code>${item.suggested_fixes.raw}</code>
                                    </div>`
                             }
                         </div>
@@ -643,18 +748,40 @@
                 }, 100);
 
             } catch (error) {
+                clearInterval(msgInterval);
                 console.error("Analysis Error:", error);
-                let errorMessage = error.message;
-                if (error instanceof TypeError && error.message.includes('fetch')) {
-                    errorMessage = "Could not connect to the security server. Please ensure the backend is running.";
-                }
+
+                const isConnectionError = error instanceof TypeError || error.name === 'TypeError';
                 
-                resultsDisplay.innerHTML = `
-                    <div class="analyzer-card fade-in" style="border-color: var(--danger); text-align: center;">
-                        <h3 style="color: var(--danger);">ANALYSIS FAILED</h3>
-                        <p style="color: #ccc;">${errorMessage}</p>
-                    </div>
-                `;
+                if (isConnectionError) {
+                    // Server is not running — show start guide
+                    resultsDisplay.innerHTML = `
+                        <div class="analyzer-card fade-in" style="border-color: #ffcc00; background: rgba(255, 204, 0, 0.05);">
+                            <h3 style="color: #ffcc00; font-family: 'Orbitron'; text-align: center; margin-bottom: 20px;">⚡ BACKEND SERVER NOT RUNNING</h3>
+                            <p style="color: #ccc; text-align: center; margin-bottom: 25px;">
+                                The security analyzer requires the backend server to be running.<br>
+                                Follow the steps below to start it.
+                            </p>
+                            <div style="background: #000; border: 1px solid #ffcc00; border-radius: 8px; padding: 25px; margin-bottom: 15px; text-align: center;">
+                                <div style="color: #ffcc00; font-size: 1.1rem; letter-spacing: 1px; margin-bottom: 15px;">SOLUTION:</div>
+                                <p style="color: #fff; font-size: 1.2rem; margin-bottom: 10px;">Double-click <strong style="color: var(--primary);">START_HEADER_SHIELD.bat</strong> in your project folder!</p>
+                                <p style="color: #555; font-size: 0.9rem; margin: 0;">(Running it natively ensures the server stays alive even if Antigravity is closed!)</p>
+                            </div>
+                            <p style="color: #555; font-size: 0.85rem; text-align: center;">
+                                💡 Optional: Use <strong style="color:#ccc;">Launch_Hidden.vbs</strong> if you want it to run silently in the background.
+                            </p>
+                        </div>
+                    `;
+                } else {
+                    // Actual scan error (bad URL, timeout, etc.)
+                    resultsDisplay.innerHTML = `
+                        <div class="analyzer-card fade-in" style="border-color: var(--danger); text-align: center;">
+                            <h3 style="color: var(--danger);">⚠ SCAN FAILED</h3>
+                            <p style="color: #ccc; margin-bottom: 8px;">${error.message}</p>
+                            <p style="color: #777; font-size: 0.85rem;">Make sure the URL is reachable and try again.</p>
+                        </div>
+                    `;
+                }
             }
         });
 
@@ -663,7 +790,10 @@
 
         genFixesBtn.addEventListener('click', () => {
             if (!lastAnalysisData) return;
+            renderFixesModal();
+        });
 
+        function renderFixesModal(format = 'nginx') {
             const missingHeaders = lastAnalysisData.headers_analyzed.filter(h => h.status === 'Missing');
             
             if (missingHeaders.length === 0) {
@@ -671,29 +801,36 @@
                 return;
             }
 
-            const fixContent = missingHeaders.map(h => h.suggested_fix).join('\n');
+            const fixContent = missingHeaders.map(h => h.suggested_fixes[format]).join('\n');
+            const formats = ['nginx', 'apache', 'raw'];
             
+            // Remove existing modal if any
+            const existing = document.querySelector('.modal-overlay');
+            if (existing) existing.remove();
+
             const fixModal = document.createElement('div');
             fixModal.className = 'modal-overlay';
-            fixModal.style.display = 'flex';
-            fixModal.style.position = 'fixed';
-            fixModal.style.top = '0';
-            fixModal.style.left = '0';
-            fixModal.style.width = '100%';
-            fixModal.style.height = '100%';
-            fixModal.style.background = 'rgba(0,0,0,0.85)';
-            fixModal.style.backdropFilter = 'blur(8px)';
-            fixModal.style.justifyContent = 'center';
-            fixModal.style.alignItems = 'center';
-            fixModal.style.zIndex = '1000';
+            fixModal.style.cssText = 'display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); justify-content: center; align-items: center; z-index: 1000;';
             
             fixModal.innerHTML = `
-                <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--primary); padding: 40px; border-radius: 15px; text-align: center; max-width: 600px; width: 90%; box-shadow: 0 0 30px rgba(255, 20, 147, 0.3);">
+                <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--primary); padding: 40px; border-radius: 15px; text-align: center; max-width: 700px; width: 90%; box-shadow: 0 0 30px rgba(255, 20, 147, 0.3);">
                     <h2 style="font-family: 'Orbitron'; color: var(--secondary); margin-bottom: 20px;">AUTO-GENERATED FIXES</h2>
-                    <p style="font-size: 0.9rem; color: #ccc; margin-bottom: 15px;">Copy and add these headers to your web server configuration:</p>
+                    
+                    <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
+                        ${formats.map(f => `
+                            <button onclick="renderFixesModal('${f}')" 
+                                    style="padding: 8px 15px; border-radius: 4px; border: 1px solid ${format === f ? 'var(--primary)' : '#444'}; 
+                                           background: ${format === f ? 'rgba(255, 20, 147, 0.2)' : 'transparent'}; 
+                                           color: ${format === f ? 'var(--primary)' : '#888'}; cursor: pointer; text-transform: uppercase; font-family: 'Orbitron'; font-size: 0.7rem;">
+                                ${f}
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <p style="font-size: 0.9rem; color: #ccc; margin-bottom: 15px;">Copy these ${format.toUpperCase()} directives to your configuration:</p>
                     <div style="background: #000; padding: 20px; border-radius: 8px; border: 1px solid var(--primary); text-align: left; position: relative;">
-                        <pre style="color: var(--secondary); font-family: 'Courier New', monospace; white-space: pre-wrap; margin: 0; font-size: 0.9rem;">${fixContent}</pre>
-                        <button onclick="copyFixes(this)" 
+                        <pre id="modal-fix-content" style="color: var(--secondary); font-family: 'Courier New', monospace; white-space: pre-wrap; margin: 0; font-size: 0.9rem;">${fixContent}</pre>
+                        <button onclick="copyFixes(this, 'modal-fix-content')" 
                                 style="position: absolute; top: 10px; right: 10px; background: var(--primary); border: none; color: #fff; font-size: 0.7rem; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
                             COPY ALL
                         </button>
@@ -702,9 +839,9 @@
                 </div>
             `;
             document.body.appendChild(fixModal);
-        });
+        }
 
-        function renderAutoFixes(data) {
+        function renderAutoFixes(data, format = 'nginx') {
             const fixesDisplay = document.getElementById('fixes-display');
             const missingHeaders = data.headers_analyzed.filter(h => h.status === 'Missing');
             
@@ -713,27 +850,38 @@
                 return;
             }
 
-            const fixContent = missingHeaders.map(h => h.suggested_fix).join('\n');
+            const fixContent = missingHeaders.map(h => h.suggested_fixes[format]).join('\n');
+            const formats = ['nginx', 'apache', 'raw'];
             
             fixesDisplay.innerHTML = `
                 <div class="analyzer-card fade-in" style="border-color: var(--primary); background: rgba(255, 20, 147, 0.05);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h2 style="font-family: 'Orbitron'; color: var(--primary); margin: 0; font-size: 1.2rem;">AUTO-GENERATED FIXES</h2>
-                        <button onclick="copyFixes(this)" 
-                                style="background: var(--primary); border: none; color: #fff; font-size: 0.8rem; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-family: 'Orbitron';">
-                            COPY ALL FIXES
-                        </button>
+                        <div style="display: flex; gap: 5px;">
+                            ${formats.map(f => `
+                                <button onclick="renderAutoFixes(lastAnalysisData, '${f}')" 
+                                        style="padding: 5px 10px; border-radius: 4px; border: 1px solid ${format === f ? 'var(--primary)' : '#444'}; 
+                                               background: ${format === f ? 'rgba(255, 20, 147, 0.2)' : 'transparent'}; 
+                                               color: ${format === f ? 'var(--primary)' : '#888'}; cursor: pointer; font-size: 0.65rem; text-transform: uppercase;">
+                                    ${f}
+                                </button>
+                            `).join('')}
+                        </div>
                     </div>
-                    <p style="font-size: 0.9rem; color: #ccc; margin-bottom: 15px; text-align: left;">Add these missing headers to your server configuration to improve security:</p>
-                    <div style="background: #000; padding: 20px; border-radius: 8px; border: 1px solid rgba(255, 20, 147, 0.3); text-align: left;">
+                    <p style="font-size: 0.9rem; color: #ccc; margin-bottom: 15px; text-align: left;">Recommended ${format.toUpperCase()} configuration for missing headers:</p>
+                    <div style="background: #000; padding: 20px; border-radius: 8px; border: 1px solid rgba(255, 20, 147, 0.3); text-align: left; position: relative;">
                         <pre id="fix-content-pre" style="color: var(--secondary); font-family: 'Courier New', monospace; white-space: pre-wrap; margin: 0; font-size: 0.9rem;">${fixContent}</pre>
+                        <button onclick="copyFixes(this, 'fix-content-pre')" 
+                                style="position: absolute; top: 10px; right: 10px; background: var(--primary); border: none; color: #fff; font-size: 0.7rem; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+                            COPY
+                        </button>
                     </div>
                 </div>
             `;
         }
 
-        function copyFixes(btn) {
-            const pre = document.getElementById('fix-content-pre');
+        function copyFixes(btn, elementId) {
+            const pre = document.getElementById(elementId);
             if (pre) {
                 navigator.clipboard.writeText(pre.innerText);
                 const originalText = btn.innerText;

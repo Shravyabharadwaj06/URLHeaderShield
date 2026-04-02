@@ -605,8 +605,8 @@
                             ${item.status === 'Present' 
                                 ? `<p style="font-family: monospace; font-size: 0.85rem; color: #888; overflow-wrap: break-word;">${item.value}</p>`
                                 : `<div class="fix-box">
-                                     <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase;">Suggested Implementation</div>
-                                     <code>${item.suggested_fix}</code>
+                                     <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase;">Suggested Implementation (Raw)</div>
+                                     <code>${item.suggested_fixes.raw}</code>
                                    </div>`
                             }
                         </div>
@@ -644,15 +644,24 @@
             } catch (error) {
                 let errorMessage = error.message;
                 if (error instanceof TypeError && error.message.includes('fetch')) {
-                    errorMessage = "Could not connect to the security server. Please ensure the backend is running.";
+                    resultsDisplay.innerHTML = `
+                        <div class="analyzer-card fade-in" style="border-color: #ffcc00; background: rgba(255, 204, 0, 0.05);">
+                            <h3 style="color: #ffcc00; text-align: center; font-family: 'Orbitron'; margin-bottom: 15px;">⚡ BACKEND NOT RUNNING</h3>
+                            <p style="color: #ccc; text-align: center;">The security analyzer requires the Django backend to be running to fetch headers securely.</p>
+                            <div style="background: #000; border: 1px solid #ffcc00; border-radius: 8px; padding: 25px; text-align: center; margin-top: 20px;">
+                                <p style="color: #fff; margin: 0 0 10px; font-size: 1.1rem;">Please double-click <strong style="color: var(--primary);">START_HEADER_SHIELD.bat</strong> in your project folder!</p>
+                                <p style="color: #666; font-size: 0.85rem; margin: 0;">(This keeps the server alive even when Antigravity is closed)</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultsDisplay.innerHTML = `
+                        <div class="analyzer-card fade-in" style="border-color: var(--danger); text-align: center;">
+                            <h3 style="color: var(--danger);">⚠ ANALYSIS FAILED</h3>
+                            <p style="color: #ccc;">${errorMessage}</p>
+                        </div>
+                    `;
                 }
-                
-                resultsDisplay.innerHTML = `
-                    <div class="analyzer-card fade-in" style="border-color: var(--danger); text-align: center;">
-                        <h3 style="color: var(--danger);">ANALYSIS FAILED</h3>
-                        <p style="color: #ccc;">${errorMessage}</p>
-                    </div>
-                `;
             }
         });
 
@@ -661,7 +670,10 @@
 
         genFixesBtn.addEventListener('click', () => {
             if (!lastAnalysisData) return;
+            renderFixesModal();
+        });
 
+        function renderFixesModal(format = 'nginx') {
             const missingHeaders = lastAnalysisData.headers_analyzed.filter(h => h.status === 'Missing');
             
             if (missingHeaders.length === 0) {
@@ -669,29 +681,36 @@
                 return;
             }
 
-            const fixContent = missingHeaders.map(h => h.suggested_fix).join('\n');
+            const fixContent = missingHeaders.map(h => h.suggested_fixes[format]).join('\n');
+            const formats = ['nginx', 'apache', 'raw'];
             
+            // Remove existing modal if any
+            const existing = document.querySelector('.modal-overlay');
+            if (existing) existing.remove();
+
             const fixModal = document.createElement('div');
             fixModal.className = 'modal-overlay';
-            fixModal.style.display = 'flex';
-            fixModal.style.position = 'fixed';
-            fixModal.style.top = '0';
-            fixModal.style.left = '0';
-            fixModal.style.width = '100%';
-            fixModal.style.height = '100%';
-            fixModal.style.background = 'rgba(0,0,0,0.85)';
-            fixModal.style.backdropFilter = 'blur(8px)';
-            fixModal.style.justifyContent = 'center';
-            fixModal.style.alignItems = 'center';
-            fixModal.style.zIndex = '1000';
+            fixModal.style.cssText = 'display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); justify-content: center; align-items: center; z-index: 1000;';
             
             fixModal.innerHTML = `
-                <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--primary); padding: 40px; border-radius: 15px; text-align: center; max-width: 600px; width: 90%; box-shadow: 0 0 30px rgba(255, 20, 147, 0.3);">
+                <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--primary); padding: 40px; border-radius: 15px; text-align: center; max-width: 700px; width: 90%; box-shadow: 0 0 30px rgba(255, 20, 147, 0.3);">
                     <h2 style="font-family: 'Orbitron'; color: var(--secondary); margin-bottom: 20px;">AUTO-GENERATED FIXES</h2>
-                    <p style="font-size: 0.9rem; color: #ccc; margin-bottom: 15px;">Copy and add these headers to your web server configuration:</p>
+                    
+                    <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
+                        ${formats.map(f => `
+                            <button onclick="renderFixesModal('${f}')" 
+                                    style="padding: 8px 15px; border-radius: 4px; border: 1px solid ${format === f ? 'var(--primary)' : '#444'}; 
+                                           background: ${format === f ? 'rgba(255, 20, 147, 0.2)' : 'transparent'}; 
+                                           color: ${format === f ? 'var(--primary)' : '#888'}; cursor: pointer; text-transform: uppercase; font-family: 'Orbitron'; font-size: 0.7rem;">
+                                ${f}
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <p style="font-size: 0.9rem; color: #ccc; margin-bottom: 15px;">Copy these ${format.toUpperCase()} directives to your configuration:</p>
                     <div style="background: #000; padding: 20px; border-radius: 8px; border: 1px solid var(--primary); text-align: left; position: relative;">
-                        <pre style="color: var(--secondary); font-family: 'Courier New', monospace; white-space: pre-wrap; margin: 0; font-size: 0.9rem;">${fixContent}</pre>
-                        <button onclick="copyFixes(this)" 
+                        <pre id="modal-fix-content" style="color: var(--secondary); font-family: 'Courier New', monospace; white-space: pre-wrap; margin: 0; font-size: 0.9rem;">${fixContent}</pre>
+                        <button onclick="copyFixes(this, 'modal-fix-content')" 
                                 style="position: absolute; top: 10px; right: 10px; background: var(--primary); border: none; color: #fff; font-size: 0.7rem; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
                             COPY ALL
                         </button>
@@ -700,9 +719,9 @@
                 </div>
             `;
             document.body.appendChild(fixModal);
-        });
+        }
 
-        function renderAutoFixes(data) {
+        function renderAutoFixes(data, format = 'nginx') {
             const fixesDisplay = document.getElementById('fixes-display');
             const missingHeaders = data.headers_analyzed.filter(h => h.status === 'Missing');
             
@@ -711,27 +730,38 @@
                 return;
             }
 
-            const fixContent = missingHeaders.map(h => h.suggested_fix).join('\n');
+            const fixContent = missingHeaders.map(h => h.suggested_fixes[format]).join('\n');
+            const formats = ['nginx', 'apache', 'raw'];
             
             fixesDisplay.innerHTML = `
                 <div class="analyzer-card fade-in" style="border-color: var(--primary); background: rgba(255, 20, 147, 0.05);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h2 style="font-family: 'Orbitron'; color: var(--primary); margin: 0; font-size: 1.2rem;">AUTO-GENERATED FIXES</h2>
-                        <button onclick="copyFixes(this)" 
-                                style="background: var(--primary); border: none; color: #fff; font-size: 0.8rem; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-family: 'Orbitron';">
-                            COPY ALL FIXES
-                        </button>
+                        <div style="display: flex; gap: 5px;">
+                            ${formats.map(f => `
+                                <button onclick="renderAutoFixes(lastAnalysisData, '${f}')" 
+                                        style="padding: 5px 10px; border-radius: 4px; border: 1px solid ${format === f ? 'var(--primary)' : '#444'}; 
+                                               background: ${format === f ? 'rgba(255, 20, 147, 0.2)' : 'transparent'}; 
+                                               color: ${format === f ? 'var(--primary)' : '#888'}; cursor: pointer; font-size: 0.65rem; text-transform: uppercase;">
+                                    ${f}
+                                </button>
+                            `).join('')}
+                        </div>
                     </div>
-                    <p style="font-size: 0.9rem; color: #ccc; margin-bottom: 15px; text-align: left;">Add these missing headers to your server configuration to improve security:</p>
-                    <div style="background: #000; padding: 20px; border-radius: 8px; border: 1px solid rgba(255, 20, 147, 0.3); text-align: left;">
+                    <p style="font-size: 0.9rem; color: #ccc; margin-bottom: 15px; text-align: left;">Recommended ${format.toUpperCase()} configuration for missing headers:</p>
+                    <div style="background: #000; padding: 20px; border-radius: 8px; border: 1px solid rgba(255, 20, 147, 0.3); text-align: left; position: relative;">
                         <pre id="fix-content-pre" style="color: var(--secondary); font-family: 'Courier New', monospace; white-space: pre-wrap; margin: 0; font-size: 0.9rem;">${fixContent}</pre>
+                        <button onclick="copyFixes(this, 'fix-content-pre')" 
+                                style="position: absolute; top: 10px; right: 10px; background: var(--primary); border: none; color: #fff; font-size: 0.7rem; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+                            COPY
+                        </button>
                     </div>
                 </div>
             `;
         }
 
-        function copyFixes(btn) {
-            const pre = document.getElementById('fix-content-pre');
+        function copyFixes(btn, elementId) {
+            const pre = document.getElementById(elementId);
             if (pre) {
                 navigator.clipboard.writeText(pre.innerText);
                 const originalText = btn.innerText;
