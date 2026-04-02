@@ -2,6 +2,7 @@ services:
   - type: web
     name: headerback
     env: python
+    plan: free
     rootDir: headerback
     buildCommand: "./build.sh"
     startCommand: "gunicorn headerback.wsgi:application"
