@@ -1,0 +1,46 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+.installed.cfg
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Mac / Windows
+.DS_Store
+Thumbs.db
+
+# Project specifics
+start_server.bat
+Launch_Hidden.vbs
+STOP_Hidden_Server.vbs
+START_HEADER_SHIELD.bat
+tmp/
+.vscode/

@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: headerback
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn headerback.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: "*"
+      - key: CORS_ALLOW_ALL_ORIGINS
+        value: "True"
